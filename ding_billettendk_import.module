@@ -1,0 +1,133 @@
+<?php
+
+/**
+ * @file
+ * Code for the Billetten.dk events import feature.
+ */
+
+include_once 'ding_billettendk_import.features.inc';
+
+/**
+ * Implements hook_menu().
+ */
+function ding_billettendk_import_menu() {
+  $items['admin/config/ding/billettendk_import'] = array(
+    'title' => 'Billetten.dk Event import settings',
+    'description' => 'Events import configuration and mapping.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('ding_billettendk_import_settings_form'),
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'ding_billettendk_import.admin.inc',
+  );
+
+  $items['billettendk/%/delete/%/%ctools_js'] = array(
+    'page callback' => 'ding_billettendk_import_delete',
+    'page arguments' => array(1, 3, 4),
+    'access callback' => 'user_access',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+    'file' => 'ding_billettendk_import.admin.inc',
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_feeds_presave().
+ */
+function ding_billettendk_import_feeds_presave(FeedsSource $source, $entity, $item) {
+  // Processing locations mapping.
+  $locations_mappings = variable_get('ding_billettendk_import_locations', array());
+
+  foreach ($locations_mappings as $mapping) {
+    if (drupal_strtolower($mapping['feed_library']) != drupal_strtolower(trim($item['location_name']))) {
+      $entity->field_ding_event_location[LANGUAGE_NONE][0] = array(
+        'locality' => $item['location_city'],
+        'postal_code' => $item['location_zip'],
+        'thoroughfare' => $item['location_street'],
+        'name_line' => $item['location_name'],
+        'country' => 'DK',
+      );
+    }
+    else {
+      $entity->og_group_ref[LANGUAGE_NONE][0]['target_id'] = $mapping['library'];
+      unset($entity->field_ding_event_location[LANGUAGE_NONE]);
+    }
+  }
+
+  // Processing categories mappings.
+  $category_mappings = variable_get('ding_billettendk_import_categories', array());
+
+  foreach ($category_mappings as $category_mapping) {
+    if (drupal_strtolower($category_mapping['feed_category']) == drupal_strtolower(trim($item['category_type']))) {
+      $entity->field_ding_event_category[LANGUAGE_NONE][0]['tid'] = $category_mapping['category'];
+    }
+  }
+
+  // Setting imported node status.
+  $entity->status = variable_get('ding_billettendk_import_nodes_status', 1);
+
+  // Processing "book" button.
+  switch ($item['availability']) {
+    case 1:
+      $entity->field_ding_event_ticket_link[LANGUAGE_NONE][] = array(
+        'title' => t('Sold out'),
+        'attributes' => array(
+          'available' => '1',
+        )
+      );
+      break;
+
+    case 2:
+      $entity->field_ding_event_ticket_link[LANGUAGE_NONE][] = array(
+        'url' => $item['show_link'],
+        'title' => t('Few available tickets'),
+        'attributes' => array(
+          'available' => '2',
+        )
+      );
+      break;
+
+    case 3:
+      $entity->field_ding_event_ticket_link[LANGUAGE_NONE][] = array(
+        'url' => $item['show_link'],
+        'title' => t("Book a ticket"),
+        'attributes' => array(
+          'available' => '3',
+        )
+      );
+      break;
+  }
+}
+
+/**
+ * Implements hook_cron().
+ */
+function ding_billettendk_import_cron() {
+  // Setting
+  $source = feeds_source('billetten_dk_events_import', 0);
+  $config = $source->getConfig();
+  $config['FeedsHTTPFetcher']['source'] = variable_get('ding_billettendk_import_service_url', 'https://v2.billetten.dk/feed/client/id/165/key/bbe49822cbd22a0cc1865183302a7347/format/xml/');
+  $source->setConfig($config);
+  $source->save();
+}
+
+/**
+ * Implements hook_preprocess_HOOK().
+ */
+function ding_billettendk_import_process_node(&$variables) {
+  if (!empty($variables['type']) && $variables['type'] == 'ding_event' && $variables['view_mode'] == 'full') {
+    // Processing "Book button".
+    $event_price = $variables['content']['field_ding_event_ticket_link']['#items'][0];
+    $text = $event_price['title'];
+    $link_url = $event_price['url'];
+
+    $variables['book_button'] = l($text, $link_url, array(
+      'attributes' => array(
+        'class' => array('ticket', 'button'),
+        'target' => '_blank',
+      ),
+    ));
+  }
+}

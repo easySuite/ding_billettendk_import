@@ -1,0 +1,13 @@
+name = Ding Billetten.dk Import
+description = Importing events from billetten.dk service.
+core = 7.x
+package = easyOPAC
+dependencies[] = ctools
+dependencies[] = feeds
+dependencies[] = feeds_ex
+configure = admin/config/ding/billettendk_import
+features[ctools][] = feeds:feeds_importer_default:1
+features[ctools][] = strongarm:strongarm:1
+features[features_api][] = api:2
+features[feeds_importer][] = billetten_dk_events_import
+mtime = 1510743675

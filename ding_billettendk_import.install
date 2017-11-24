@@ -8,7 +8,7 @@
 /**
  * Implements hook_install().
  */
-function ding_billettendk_install() {
+function ding_billettendk_import_install() {
   _add_event_ticket_link();
 }
 

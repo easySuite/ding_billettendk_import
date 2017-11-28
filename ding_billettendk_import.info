@@ -3,7 +3,7 @@ description = Importing events from billetten.dk service.
 core = 7.x
 package = easyOPAC
 dependencies[] = ctools
-dependencies[] = feeds
+dependencies[] = feeds (>=7.x-2.0-beta4)
 dependencies[] = feeds_ex
 configure = admin/config/ding/billettendk_import
 features[ctools][] = feeds:feeds_importer_default:1

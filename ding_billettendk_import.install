@@ -2,12 +2,150 @@
 
 /**
  * @file
+ * Ding! Billetten.dk event import.
  */
 
+/**
+ * Implements hook_install().
+ */
 function ding_billettendk_import_install() {
-  variable_set('ding_billettendk_import_service_url', 'https://v2.billetten.dk/feed/client/id/165/key/bbe49822cbd22a0cc1865183302a7347/format/xml/');
+  _add_event_ticket_link();
 }
 
-function ding_billettendk_import_uninstall() {
+/**
+ * Create ding_event ticket link field.
+ */
+function _add_event_ticket_link() {
+  $field_config = field_info_field('field_ding_event_ticket_link');
+  $field_instance = field_info_instance('node', 'field_ding_event_ticket_link', 'ding_event');
 
+  if (empty($field_config) && empty($field_instance)) {
+    $field_ticket = [
+      'entity_types' => [],
+      'foreign keys' => [],
+      'indexes' => [],
+      'settings' => [
+        'attributes' => [
+          'class' => '',
+          'rel' => '',
+          'target' => 'default',
+        ],
+        'display' => [
+          'url_cutoff' => 80,
+        ],
+        'enable_tokens' => 1,
+        'profile2_private' => FALSE,
+        'title' => 'optional',
+        'title_maxlength' => 128,
+        'title_value' => '',
+        'url' => 0,
+      ],
+      'translatable' => '0',
+      'storage' => [
+        'type' => 'field_sql_storage',
+        'settings' => [],
+        'module' => 'field_sql_storage',
+        'active' => '1',
+        'details' => [
+          'sql' => [
+            'FIELD_LOAD_CURRENT' => [
+              'field_data_field_ding_event_ticket_link' => [
+                'url' => 'field_ding_event_ticket_link_url',
+                'title' => 'field_ding_event_ticket_link_title',
+                'attributes' => 'field_ding_event_ticket_link_attributes',
+              ],
+            ],
+            'FIELD_LOAD_REVISION' => [
+              'field_revision_field_ding_event_ticket_link' => [
+                'url' => 'field_ding_event_ticket_link_url',
+                'title' => 'field_ding_event_ticket_link_title',
+                'attributes' => 'field_ding_event_ticket_link_attributes',
+              ],
+            ],
+          ],
+        ],
+      ],
+      'field_name' => 'field_ding_event_ticket_link',
+      'type' => 'link_field',
+      'module' => 'link',
+      'active' => '1',
+      'locked' => '0',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'columns' => [
+        'url' => [
+          'type' => 'varchar',
+          'length' => 2048,
+          'not null' => FALSE,
+          'sortable' => TRUE,
+        ],
+        'title' => [
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => FALSE,
+          'sortable' => TRUE,
+        ],
+        'attributes' => [
+          'type' => 'text',
+          'size' => 'medium',
+          'not null' => FALSE,
+        ],
+      ],
+      'bundles' => [
+        'node' => [
+          0 => 'ding_event',
+        ],
+      ],
+    ];
+    field_create_field($field_ticket);
+
+    $field_ticket_instance = [
+      'description' => 'An external link to a site where the user can sign up for the event or buy tickets to the event. The link is printet out as a button. If the event has a price the text on the button will be "Bestil billet(ter)" - if not, the text will be "Deltag i arrangementet". If Place2book is used, this field should not be used.',
+      'display' => [
+        'default' => [
+          'label' => 'hidden',
+          'module' => 'link',
+          'settings' => [],
+          'type' => 'link_default',
+          'weight' => 4,
+        ],
+      ],
+      'label' => 'Book ticket/Participate in event',
+      'required' => 0,
+      'settings' => [
+        'absolute_url' => 1,
+        'attributes' => [
+          'class' => '',
+          'configurable_class' => 0,
+          'configurable_title' => 0,
+          'rel' => '',
+          'target' => 'default',
+          'title' => '',
+        ],
+        'display' => [
+          'url_cutoff' => 80,
+        ],
+        'enable_tokens' => 1,
+        'rel_remove' => 'default',
+        'title' => 'none',
+        'title_label_use_field_label' => 0,
+        'title_maxlength' => 128,
+        'title_value' => '',
+        'url' => 0,
+        'user_register_form' => FALSE,
+        'validate_url' => 1,
+      ],
+      'widget' => [
+        'active' => 0,
+        'module' => 'link',
+        'settings' => [],
+        'type' => 'link_field',
+        'weight' => 7,
+      ],
+      'field_name' => 'field_ding_event_ticket_link',
+      'entity_type' => 'node',
+      'bundle' => 'ding_event',
+    ];
+    field_create_instance($field_ticket_instance);
+  }
 }

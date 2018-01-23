@@ -114,20 +114,22 @@ function ding_billettendk_import_cron() {
 }
 
 /**
- * Implements hook_preprocess_HOOK().
+ * Implements hook_process_HOOK().
  */
 function ding_billettendk_import_process_node(&$variables) {
   if (!empty($variables['type']) && $variables['type'] == 'ding_event' && $variables['view_mode'] == 'full') {
     // Processing "Book button".
-    $event_price = $variables['content']['field_ding_event_ticket_link']['#items'][0];
-    $text = $event_price['title'];
-    $link_url = $event_price['url'];
+    if (!empty($variables['content']['field_ding_event_ticket_link'])) {
+      $event_price = $variables['content']['field_ding_event_ticket_link']['#items'][0];
+      $text = $event_price['title'];
+      $link_url = $event_price['url'];
 
-    $variables['book_button'] = l($text, $link_url, array(
-      'attributes' => array(
-        'class' => array('ticket', 'button'),
-        'target' => '_blank',
-      ),
-    ));
+      $variables['book_button'] = l($text, $link_url, array(
+        'attributes' => array(
+          'class' => array('ticket-available'),
+          'target' => '_blank',
+        ),
+      ));
+    }
   }
 }

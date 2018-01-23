@@ -1,6 +1,7 @@
 name = Ding Billetten.dk Import
 description = Importing events from billetten.dk service.
 core = 7.x
+version = 7.x-4.0.2
 package = easyOPAC
 dependencies[] = ctools
 dependencies[] = feeds (>=7.x-2.0-beta4)
